@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Competency Assessment - Alumni Ventures</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Clock = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        );
+
+        const CheckCircle = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        );
+
+        const Download = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        );
+
+        const AICompetencyTest = () => {
+            const [started, setStarted] = useState(false);
+            const [currentSection, setCurrentSection] = useState(0);
+            const [timeRemaining, setTimeRemaining] = useState(3600);
+            const [responses, setResponses] = useState({});
+            const [completed, setCompleted] = useState(false);
+            const [agreedToHonorCode, setAgreedToHonorCode] = useState(false);
+            const [candidateName, setCandidateName] = useState('');
+            const [candidateEmail, setCandidateEmail] = useState('');
+            const [validationErrors, setValidationErrors] = useState({});
+
+            useEffect(() => {
+                if (started && !completed && timeRemaining > 0) {
+                    const timer = setInterval(() => {
+                        setTimeRemaining(prev => {
+                            if (prev <= 1) {
+                                setCompleted(true);
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                    return () => clearInterval(timer);
+                }
+            }, [started, completed, timeRemaining]);
+
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const sections = [
+                {
+                    id: 'prompting',
+                    title: 'Section 1: Multi-Step Prompting & Reasoning',
+                    points: 15,
+                    suggestedTime: '10 min',
+                    instructions: 'This section evaluates your ability to design clear, effective prompts and explain your reasoning.\nRead the scenario below and answer the questions that follow.',
+                    tasks: [
+                        {
+                            id: 'p1',
+                            question: `**Scenario:** AV is evaluating a Series A investment in a climate-tech startup. You need to create a competitive-landscape analysis outlining key players, differentiators, and relevant market insights.
+
+**Part 1: Create Your Prompt (<span style="color: #16a34a; font-weight: bold;">AI tools allowed</span>)**
+
+Write the initial prompt you would give to an AI tool to generate this analysis.
+
+**Paste your prompt below:**`,
+                            type: 'textarea',
+                            rows: 8
+                        },
+                        {
+                            id: 'p2',
+                            question: `**Part 2: Explain Your Approach (<span style="color: #dc2626; font-weight: bold;">AI tools NOT allowed</span>)**
+
+A. Describe how you would improve or expand the AI's response if the initial output were too general. What specific steps would you take to get a stronger, more useful result?
+
+B. Explain your reasoning: Why did you structure your prompt the way you did? What makes your approach effective?
+
+**In your own words, write your answers to A and B below:**`,
+                            type: 'textarea',
+                            rows: 10
+                        }
+                    ]
+                },
+                {
+                    id: 'document',
+                    title: 'Section 2: Document Analysis with Citations',
+                    points: 20,
+                    suggestedTime: '12 min',
+                    instructions: 'This section evaluates your ability to analyze written information and support your answers with evidence.\nRead the document excerpt below and answer the questions that follow.',
+                    tasks: [
+                        {
+                            id: 'd1',
+                            type: 'document',
+                            document: `**Alumni Ventures Q3 2025 Portfolio Update**
+
+Our portfolio companies showed mixed performance this quarter. Notable highlights include:
+
+- **TechFlow AI** (Series B, $15M invested): Revenue grew 180% YoY to $8.2M ARR. Customer count increased from 45 to 127 enterprise clients. Burn rate remains high at $1.2M/month but improving with gross margins now at 68%.
+
+- **GreenCharge Systems** (Series A, $5M invested): Faced supply chain delays pushing product launch from Q3 to Q1 2026. Runway extended through bridge financing. Team morale strong despite setbacks.
+
+- **HealthMetrics Pro** (Seed, $2M invested): Achieved profitability in Q3 with $400K monthly revenue and $350K costs. Growing organically without additional capital needs. Considering strategic acquisition interest from two Fortune 500 companies.
+
+- **FinServe Analytics** (Series B, $8M invested): Customer churn increased to 8% monthly (up from 3%). Product-market fit concerns emerging. Founder considering pivot to different vertical.
+
+Market conditions remain challenging with extended sales cycles across enterprise portfolio companies.`,
+                            question: `**Analyze this document and answer the following questions (<span style="color: #16a34a; font-weight: bold;">AI tools allowed</span>):**
+1. Which portfolio company currently represents the highest risk? Explain why.
+2. Which company is performing best? Provide specific metrics.
+3. What follow-up questions should the investment team ask about TechFlow AI?
+
+**Requirements:** 
+- Cite specific information from the excerpt in each response.
+- Provide 3–5 concise bullet points per question.
+- Include the AI prompt you used, followed by your final written answers.`,
+                            textarea: true,
+                            rows: 14
+                        }
+                    ]
+                },
+                {
+                    id: 'data',
+                    title: 'Section 3: Data Analysis & Insights',
+                    points: 20,
+                    suggestedTime: '15 min',
+                    instructions: 'This section evaluates your ability to interpret data and generate actionable insights.\nAnalyze the dataset below to identify key patterns or findings, and answer the questions that follow.',
+                    tasks: [
+                        {
+                            id: 'da1',
+                            type: 'data',
+                            data: `**AV Syndicate Member Engagement Data (Sample):**
+
+Member_ID | Join_Date | Deals_Viewed | Deals_Invested | Total_Invested | Last_Activity | Region
+----------|-----------|--------------|----------------|----------------|---------------|----------
+M001      | 2023-01   | 45           | 8              | $125,000       | 2025-10       | Northeast
+M002      | 2024-06   | 12           | 0              | $0             | 2024-08       | West
+M003      | 2023-03   | 67           | 15             | $340,000       | 2025-11       | Southeast
+M004      | 2024-01   | 23           | 3              | $45,000        | 2025-09       | Midwest
+M005      | 2024-09   | 5            | 0              | $0             | 2024-10       | West
+M006      | 2022-11   | 89           | 22             | $680,000       | 2025-10       | Northeast
+M007      | 2023-07   | 34           | 6              | $95,000        | 2025-11       | Southeast
+M008      | 2024-03   | 18           | 1              | $15,000        | 2025-07       | West`,
+                            question: `**Your Tasks:**
+1. Upload this data to an AI tool or paste it in for analysis.
+2. Ask the AI to identify patterns or trends and segment members into relevant categories.
+3. Request specific recommendations for re-engaging low-activity members.
+
+**Part 1: AI Analysis (<span style="color: #16a34a; font-weight: bold;">AI tools allowed</span>)**
+
+Paste the prompt(s) you used and the AI's key findings (in summary form):`,
+                            textarea: true,
+                            rows: 10
+                        },
+                        {
+                            id: 'da2',
+                            question: `**Part 2: Your Interpretation (<span style="color: #dc2626; font-weight: bold;">AI tools NOT allowed</span>)**
+
+- Share your interpretation: What is the most important finding, and why does it matter?
+- Briefly summarize how these insights could inform next steps for the Alumni Ventures team.
+
+**In your own words, write your answers below:**`,
+                            textarea: true,
+                            rows: 8
+                        }
+                    ]
+                },
+                {
+                    id: 'communication',
+                    title: 'Section 4: Business Communication',
+                    points: 15,
+                    suggestedTime: '10 min',
+                    instructions: 'This section evaluates your ability to write clear, professional business communication.\nRead the scenario below and answer the questions that follow.',
+                    tasks: [
+                        {
+                            id: 'c1',
+                            question: `**Scenario:** A portfolio company CEO emailed asking about Alumni Ventures' upcoming board meeting. They're nervous about discussing their recent product delays.
+
+**Your Task:**
+Use an AI tool to help you draft a professional email reply to the CEO. The email should:
+- Acknowledge their concern about the upcoming Alumni Ventures board meeting.
+- Set a constructive, supportive tone that builds confidence.
+- Request any specific updates or prep materials the CEO should share in advance.
+- Be clear, concise, and under 150 words.
+
+**Deliverable (<span style="color: #16a34a; font-weight: bold;">AI tools allowed</span>):**
+
+Paste the prompt you gave the AI and the final email you would send (you may edit or refine the AI's output):`,
+                            type: 'textarea',
+                            rows: 10
+                        },
+                        {
+                            id: 'c2',
+                            question: `**Deliverable (<span style="color: #dc2626; font-weight: bold;">AI tools NOT allowed</span>):**
+
+In your own words, provide a brief explanation (3–4 sentences) of what you asked the AI to do and why:`,
+                            type: 'textarea',
+                            rows: 6
+                        }
+                    ]
+                },
+                {
+                    id: 'safety',
+                    title: 'Section 5: AI Safety, Ethics & Privacy',
+                    points: 20,
+                    suggestedTime: '8 min',
+                    instructions: 'This section evaluates your understanding of appropriate and ethical AI use in a venture capital context.\nRead the scenarios below and answer the questions that follow.',
+                    tasks: [
+                        {
+                            id: 's1',
+                            question: `**Scenario 1:** A team member wants to upload an entire pitch deck into ChatGPT to generate an investment memo for a potential deal. The slides include financial projections, the cap table, and personal information about the founders.
+
+**Question (<span style="color: #dc2626; font-weight: bold;">AI tools NOT allowed</span>):** What are the key concerns? What would you recommend instead?`,
+                            type: 'textarea',
+                            rows: 6
+                        },
+                        {
+                            id: 's2',
+                            question: `**Scenario 2:** You are using Claude to analyze employee performance reviews to identify patterns in team satisfaction scores.
+
+**Question (<span style="color: #dc2626; font-weight: bold;">AI tools NOT allowed</span>):** What privacy and ethical considerations should you keep in mind? What guardrails would you put in place?`,
+                            type: 'textarea',
+                            rows: 6
+                        }
+                    ]
+                },
+                {
+                    id: 'workflow',
+                    title: 'Section 6: Workflow Design & Automation',
+                    points: 10,
+                    suggestedTime: '5 min',
+                    instructions: 'This section evaluates your ability to design a clear, practical workflow that integrates AI effectively.\nRead the challenge below and create a simple AI-enhanced workflow for a common business process.',
+                    tasks: [
+                        {
+                            id: 'w1',
+                            question: `**Challenge:** AV's marketing team spends 3 hours weekly summarizing portfolio company news mentions and achievements to include in the monthly LP newsletter.
+
+**Your Task (<span style="color: #dc2626; font-weight: bold;">AI tools NOT allowed</span>):**
+Design a simple AI-enhanced workflow to reduce this from 3 hours to 30 minutes.
+
+**Include:**
+- A step-by-step process (5–7 steps).
+- Which AI tool(s) you'd use and for what purpose.
+- What human review or oversight is still needed.
+- One potential risk and how you would mitigate it.
+
+*Keep your response to 300 words or less.*`,
+                            type: 'textarea',
+                            rows: 12
+                        }
+                    ]
+                }
+            ];
+
+            const handleResponseChange = (sectionId, taskId, value) => {
+                setResponses({
+                    ...responses,
+                    [`${sectionId}_${taskId}`]: value
+                });
+            };
+
+            const startTest = () => {
+                const errors = {};
+                if (!candidateName.trim()) errors.name = true;
+                if (!candidateEmail.trim()) errors.email = true;
+                if (!agreedToHonorCode) errors.honorCode = true;
+                
+                if (Object.keys(errors).length > 0) {
+                    setValidationErrors(errors);
+                    return;
+                }
+                
+                setValidationErrors({});
+                setStarted(true);
+            };
+
+            const nextSection = () => {
+                // Validate current section responses
+                const section = sections[currentSection];
+                const errors = {};
+                
+                section.tasks.forEach(task => {
+                    const responseKey = `${section.id}_${task.id}`;
+                    if (!responses[responseKey] || !responses[responseKey].trim()) {
+                        errors[responseKey] = true;
+                    }
+                });
+                
+                if (Object.keys(errors).length > 0) {
+                    setValidationErrors(errors);
+                    return;
+                }
+                
+                setValidationErrors({});
+                if (currentSection < sections.length - 1) {
+                    setCurrentSection(currentSection + 1);
+                }
+            };
+
+            const prevSection = () => {
+                if (currentSection > 0) {
+                    setCurrentSection(currentSection - 1);
+                }
+            };
+
+            const submitTest = () => {
+                // Validate current section responses before submitting
+                const section = sections[currentSection];
+                const errors = {};
+                
+                section.tasks.forEach(task => {
+                    const responseKey = `${section.id}_${task.id}`;
+                    if (!responses[responseKey] || !responses[responseKey].trim()) {
+                        errors[responseKey] = true;
+                    }
+                });
+                
+                if (Object.keys(errors).length > 0) {
+                    setValidationErrors(errors);
+                    return;
+                }
+                
+                setValidationErrors({});
+                setCompleted(true);
+            };
+
+            const exportResults = () => {
+                const results = {
+                    candidateInfo: {
+                        name: candidateName,
+                        email: candidateEmail,
+                        completedAt: new Date().toISOString(),
+                        timeUsed: 3600 - timeRemaining,
+                    },
+                    responses: responses,
+                    sections: sections.map(s => ({
+                        id: s.id,
+                        title: s.title,
+                        points: s.points
+                    }))
+                };
+                
+                const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ai-competency-test-${candidateName.replace(/\s+/g, '-')}-${Date.now()}.json`;
+                a.click();
+            };
+
+            if (!started) {
+                return (
+                    <div className="min-h-screen p-8" style={{background: 'linear-gradient(to bottom right, #dde9ef, #f0f5f7)'}}>
+                        <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8">
+                            <h1 className="text-3xl font-bold text-gray-900 mb-4">AI Competency Assessment</h1>
+                            
+                            <div className="bg-teal-50 border-l-4 border-teal-500 p-4 mb-6" style={{backgroundColor: '#dde9ef', borderColor: '#104866'}}>
+                                <div className="flex items-start">
+                                    <Clock />
+                                    <div className="ml-3">
+                                        <p className="font-semibold" style={{color: '#104866'}}>Test Duration: 60 Minutes</p>
+                                        <p className="text-sm" style={{color: '#104866'}}>The timer will start when you click "Begin Test"</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <h2 className="text-xl font-semibold mb-3">Assessment Overview</h2>
+                                <p className="text-gray-700 mb-4">
+                                    This assessment evaluates your practical AI skills across six key areas. You'll use an AI tool of your choice (e.g., Claude, ChatGPT, or Gemini) to complete real-world tasks similar to those you might handle as an AI Special Assistant at AV.
+                                </p>
+                                
+                                
+                                <div className="mb-6">
+                                    <p className="font-semibold text-gray-900 mb-2">Your responses will be evaluated on the following criteria:</p>
+                                    <ul className="list-disc list-inside space-y-1 text-gray-700 ml-4">
+                                        <li><strong>Clarity:</strong> How clearly and effectively you communicate your reasoning or answer</li>
+                                        <li><strong>Accuracy:</strong> How factually and logically correct your response is</li>
+                                        <li><strong>AI Application:</strong> How effectively you use prompting or structured thinking to solve the task</li>
+                                    </ul>
+                                </div>
+                                
+                                
+                                <div className="space-y-2 text-sm">
+                                    {sections.map((section, idx) => (
+                                        <div key={idx} className="flex justify-between py-2 border-b">
+                                            <span className="text-gray-700">{section.title}</span>
+                                            <span className="font-semibold">{section.points} pts | ~{section.suggestedTime}</span>
+                                        </div>
+                                    ))}
+                                    <div className="flex justify-between py-2 font-bold">
+                                        <span>Total</span>
+                                        <span>100 points | 60 minutes</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="border-l-4 p-4 mb-6" style={{backgroundColor: '#F6F2F8', borderColor: '#7B569B'}}>
+                                <h3 className="font-semibold mb-3" style={{color: '#7B569B'}}>Honor Code & Guidelines</h3>
+                                
+                                <h4 className="font-semibold text-sm mb-2" style={{color: '#003349'}}>AI Use</h4>
+                                <ul className="text-sm space-y-1 mb-3" style={{color: '#003349'}}>
+                                    <li>✓ Use AI tools (Claude, ChatGPT, Gemini, etc.) only in sections where AI is explicitly allowed.</li>
+                                    <li>✗ Do NOT use AI tools in sections that say AI is not permitted.</li>
+                                </ul>
+
+                                <h4 className="font-semibold text-sm mb-2" style={{color: '#003349'}}>General Rules</h4>
+                                <ul className="text-sm space-y-1" style={{color: '#003349'}}>
+                                    <li>✓ Searching for information online is allowed.</li>
+                                    <li>✓ Using your normal work environment and tools is allowed.</li>
+                                    <li>✗ Getting help from other people is not allowed.</li>
+                                    <li>✗ Using pre-written templates you didn't create is not allowed.</li>
+                                    <li>✗ Copying responses from others is not allowed.</li>
+                                </ul>
+
+                                <p className="text-sm mt-3" style={{color: '#003349'}}>
+                                    <strong>Note:</strong> Some sections of this test allow the use of AI tools to simulate real-world workflows. Other sections are designed to evaluate your independent reasoning and must be completed without AI assistance. Please follow the instructions in each section carefully.
+                                </p>
+                            </div>
+
+                            <div className="mb-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                                    <input
+                                        type="text"
+                                        value={candidateName}
+                                        onChange={(e) => {
+                                            setCandidateName(e.target.value);
+                                            if (validationErrors.name && e.target.value.trim()) {
+                                                const newErrors = {...validationErrors};
+                                                delete newErrors.name;
+                                                setValidationErrors(newErrors);
+                                            }
+                                        }}
+                                        className={`w-full px-3 py-2 border rounded-lg ${validationErrors.name ? 'border-red-500 border-2' : 'border-gray-300'}`}
+                                        style={{outlineColor: '#104866'}}
+                                        onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px #104866'}
+                                        onBlur={(e) => e.target.style.boxShadow = 'none'}
+                                        placeholder="Enter your full name"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Your Email</label>
+                                    <input
+                                        type="email"
+                                        value={candidateEmail}
+                                        onChange={(e) => {
+                                            setCandidateEmail(e.target.value);
+                                            if (validationErrors.email && e.target.value.trim()) {
+                                                const newErrors = {...validationErrors};
+                                                delete newErrors.email;
+                                                setValidationErrors(newErrors);
+                                            }
+                                        }}
+                                        className={`w-full px-3 py-2 border rounded-lg ${validationErrors.email ? 'border-red-500 border-2' : 'border-gray-300'}`}
+                                        style={{outlineColor: '#104866'}}
+                                        onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px #104866'}
+                                        onBlur={(e) => e.target.style.boxShadow = 'none'}
+                                        placeholder="Enter your email"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={`mb-6 ${validationErrors.honorCode ? 'p-3 border-2 border-red-500 rounded-lg' : ''}`}>
+                                <label className="flex items-start space-x-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={agreedToHonorCode}
+                                        onChange={(e) => {
+                                            setAgreedToHonorCode(e.target.checked);
+                                            if (validationErrors.honorCode && e.target.checked) {
+                                                const newErrors = {...validationErrors};
+                                                delete newErrors.honorCode;
+                                                setValidationErrors(newErrors);
+                                            }
+                                        }}
+                                        className="mt-1 w-5 h-5"
+                                        style={{accentColor: '#104866'}}
+                                    />
+                                    <span className="text-gray-700">
+                                        I understand and agree to follow the honor code. I will complete this assessment 
+                                        independently using AI tools as my primary resource, without assistance from other people.
+                                    </span>
+                                </label>
+                            </div>
+
+                            {Object.keys(validationErrors).length > 0 && (
+                                <div className="mb-4 p-4 bg-red-50 border-2 border-red-500 rounded-lg">
+                                    <p className="text-red-700 font-semibold">
+                                        ⚠️ Please fill in all required fields before starting the test.
+                                    </p>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={startTest}
+                                className="w-full py-4 rounded-lg font-semibold text-lg transition-colors text-white hover:opacity-90"
+                                style={{backgroundColor: '#104866'}}
+                            >
+                                Begin Test
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (completed) {
+                return (
+                    <div className="min-h-screen p-8" style={{background: 'linear-gradient(to bottom right, #dde9ef, #f0f5f7)'}}>
+                        <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8">
+                            <div className="text-center mb-8">
+                                <div className="flex justify-center mb-4">
+                                    <CheckCircle />
+                                </div>
+                                <h1 className="text-3xl font-bold text-gray-900 mb-2">Test Submitted</h1>
+                                <p className="text-gray-600">
+                                    Thank you for completing the assessment. Your responses have been recorded. Please download your results and email them to Alumni Ventures for review.
+                                </p>
+                            </div>
+
+                            <div className="p-6 rounded-lg mb-6" style={{backgroundColor: '#F6F2F8'}}>
+                                <h2 className="font-semibold text-lg mb-4">Test Summary</h2>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span>Candidate:</span>
+                                        <span className="font-semibold">{candidateName}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Email:</span>
+                                        <span className="font-semibold">{candidateEmail}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Time Used:</span>
+                                        <span className="font-semibold">{formatTime(3600 - timeRemaining)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Sections Completed:</span>
+                                        <span className="font-semibold">{sections.length} of {sections.length}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Total Possible Points:</span>
+                                        <span className="font-semibold">100</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="border-t pt-6 mb-6">
+                                <h3 className="font-semibold mb-3">Next Steps</h3>
+                                <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Click the button below to download your responses</li>
+                                    <li>Email the downloaded file to <strong>cate.woolsey@av.vc</strong></li>
+                                </ol>
+                            </div>
+
+                            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-sm text-yellow-800">
+                                    <strong>Important:</strong> Please preserve the original filename when emailing your responses. Make sure to download and save your responses before closing this window.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={exportResults}
+                                className="w-full py-3 text-white rounded-lg font-semibold hover:opacity-90 flex items-center justify-center space-x-2"
+                                style={{backgroundColor: '#104866'}}
+                            >
+                                <Download />
+                                <span>Download Your Responses (JSON)</span>
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const section = sections[currentSection];
+
+            return (
+                <div className="min-h-screen bg-gray-50 p-4">
+                    <div className="max-w-5xl mx-auto mb-4">
+                        <div className="bg-white rounded-lg shadow p-4 flex justify-between items-center">
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900">AI Competency Assessment</h2>
+                                <p className="text-sm text-gray-600">Section {currentSection + 1} of {sections.length}</p>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                    <Clock />
+                                    <span className={`text-xl font-mono font-semibold ${
+                                        timeRemaining < 300 ? 'text-red-600' : 'text-gray-900'
+                                    }`}>
+                                        {formatTime(timeRemaining)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-w-5xl mx-auto mb-6">
+                        <div className="flex space-x-2">
+                            {sections.map((_, idx) => (
+                                <div
+                                    key={idx}
+                                    className={`h-2 flex-1 rounded ${
+                                        idx < currentSection ? '' :
+                                        idx === currentSection ? '' :
+                                        'bg-gray-200'
+                                    }`}
+                                    style={idx < currentSection ? {backgroundColor: '#1b9390'} : idx === currentSection ? {backgroundColor: '#104866'} : {}}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-lg p-8">
+                        <div className="mb-6">
+                            <div className="flex justify-between items-start mb-2">
+                                <h1 className="text-2xl font-bold text-gray-900">{section.title}</h1>
+                                <span className="px-3 py-1 rounded-full text-sm font-semibold text-white" style={{backgroundColor: '#104866'}}>
+                                    {section.points} points
+                                </span>
+                            </div>
+                            {section.instructions.split('\n').map((line, i) => (
+                                <p key={i} className="text-gray-600 mb-2">{line}</p>
+                            ))}
+                            <p className="text-sm text-gray-500">Suggested time: {section.suggestedTime}</p>
+                        </div>
+
+                        <div className="space-y-8">
+                            {section.tasks.map((task, idx) => (
+                                <div key={task.id} className="border-l-4 pl-6" style={{borderColor: '#104866'}}>
+                                    {task.document && (
+                                        <div className="bg-gray-50 p-4 rounded mb-4 text-sm whitespace-pre-wrap font-mono">
+                                            {task.document}
+                                        </div>
+                                    )}
+                                    {task.data && (
+                                        <div className="bg-gray-50 p-4 rounded mb-4 text-xs overflow-x-auto">
+                                            <pre>{task.data}</pre>
+                                        </div>
+                                    )}
+                                    <div className="mb-4 prose prose-sm max-w-none" 
+                                         dangerouslySetInnerHTML={{ __html: task.question.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }} 
+                                    />
+                                    <textarea
+                                        value={responses[`${section.id}_${task.id}`] || ''}
+                                        onChange={(e) => {
+                                            handleResponseChange(section.id, task.id, e.target.value);
+                                            const responseKey = `${section.id}_${task.id}`;
+                                            if (validationErrors[responseKey] && e.target.value.trim()) {
+                                                const newErrors = {...validationErrors};
+                                                delete newErrors[responseKey];
+                                                setValidationErrors(newErrors);
+                                            }
+                                        }}
+                                        rows={task.rows || 8}
+                                        className={`w-full border rounded-lg p-3 font-mono text-sm focus:ring-2 focus:border-transparent ${validationErrors[`${section.id}_${task.id}`] ? 'border-red-500 border-2' : 'border-gray-300'}`}
+                                        style={{outlineColor: '#104866'}}
+                                        onFocus={(e) => e.target.style.boxShadow = '0 0 0 2px #104866'}
+                                        onBlur={(e) => e.target.style.boxShadow = 'none'}
+                                        placeholder="Type your response here..."
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        {Object.keys(validationErrors).length > 0 && (
+                            <div className="mt-6 p-4 bg-red-50 border-2 border-red-500 rounded-lg">
+                                <p className="text-red-700 font-semibold">
+                                    ⚠️ Please fill in all required fields before continuing.
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="mt-8 flex justify-between items-center pt-6 border-t">
+                            <button
+                                onClick={prevSection}
+                                disabled={currentSection === 0}
+                                className={`px-6 py-2 rounded-lg font-semibold ${
+                                    currentSection === 0
+                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                ← Previous Section
+                            </button>
+
+                            {currentSection === sections.length - 1 ? (
+                                <button
+                                    onClick={submitTest}
+                                    className="px-8 py-3 text-white rounded-lg font-semibold hover:opacity-90 flex items-center space-x-2"
+                                    style={{backgroundColor: '#1b9390'}}
+                                >
+                                    <span>✓</span>
+                                    <span>Submit Test</span>
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={nextSection}
+                                    className="px-6 py-2 text-white rounded-lg font-semibold hover:opacity-90"
+                                    style={{backgroundColor: '#104866'}}
+                                >
+                                    Next Section →
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<AICompetencyTest />, document.getElementById('root'));
+    </script>
+</body>
+</html>
